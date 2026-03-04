@@ -1,0 +1,48 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+The Gravitate-Health Lens Selector Example has been deployed successfully!
+
+1. Get the application URL:
+{{- if eq .Values.networking.type "ingress" }}
+{{- range $host := .Values.networking.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.networking.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if eq .Values.networking.type "istio" }}
+  # Your service is exposed via Istio
+  # Configure your Istio Gateway to route traffic to:
+  Service: {{ include "lens-selector-example.fullname" . }}
+  Port: {{ .Values.service.port }}
+{{- else }}
+  # Your service is only accessible within the cluster
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "lens-selector-example.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:8080 to access the application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:{{ .Values.service.targetPort }}
+{{- end }}
+
+2. Service Discovery:
+{{- if .Values.customLabels.gravitateHealth }}
+  ✓ The Gravitate-Health focusing label is enabled
+  This service will be automatically discovered by the focusing manager.
+  Service Label: eu.gravitate-health.fosps.focusing: "true"
+{{- else }}
+  ⚠ The Gravitate-Health focusing label is disabled
+  To enable service discovery, set: customLabels.gravitateHealth=true
+{{- end }}
+
+3. Cluster DNS Name:
+  http://{{ include "lens-selector-example.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+
+4. To view logs:
+  kubectl logs -f deployment/{{ include "lens-selector-example.fullname" . }} -n {{ .Release.Namespace }}
+
+For more information, visit:
+  https://github.com/Gravitate-Health/lens-selector-example

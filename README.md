@@ -25,19 +25,107 @@ This repository contains an example of a lens selector. A lens selector provides
 ---
 ## Kubernetes Deployment
 
-1. Create the following resources:
+This service can be deployed to Kubernetes using either raw manifests or the production-ready Helm chart (recommended).
+
+### Deploy via Helm (OCI Registry) - Recommended
+
+The Helm chart is distributed as an OCI artifact via GitHub Container Registry. You can deploy directly without cloning the repository:
+
 ```bash
-kubectl apply -f kubernetes-yaml/001_lens-selector-example-service.yaml
-kubectl apply -f kubernetes-yaml/002_lens-selector-example-deployment.yaml
+# Login to the registry (if private)
+helm registry login ghcr.io -u <your-username>
+
+# Deploy directly from the OCI registry
+helm install lens-selector oci://ghcr.io/gravitate-health/charts/lens-selector-example --version 0.1.0
+
+# Or with custom values
+helm install lens-selector oci://ghcr.io/gravitate-health/charts/lens-selector-example \
+  --version 0.1.0 \
+  --set image.tag=v1.0.0 \
+  --set replicaCount=3
+
+# Upgrade an existing release
+helm upgrade lens-selector oci://ghcr.io/gravitate-health/charts/lens-selector-example --version 0.1.0
 ```
 
-In order to be discovered by the focusing manager, the service.yaml needs to include the following selector in the `spec` field:
+### Deploy via Helm (Local Development)
+
+For local development or customization:
+
+```bash
+# Clone the repository
+git clone https://github.com/Gravitate-Health/lens-selector-example.git
+cd lens-selector-example
+
+# Lint the chart
+helm lint charts/lens-selector-example
+
+# Preview the rendered templates
+helm template lens-selector charts/lens-selector-example
+
+# Install from local chart
+helm install lens-selector charts/lens-selector-example
+
+# Install with custom values file
+helm install lens-selector charts/lens-selector-example -f my-values.yaml
+```
+
+### Helm Configuration Options
+
+Key configuration options in `values.yaml`:
+
+- **Image Configuration**: Customize repository, tag, and pull policy
+- **Replicas**: Scale the deployment (or enable autoscaling)
+- **Resources**: Set CPU/memory requests and limits
+- **Networking**: Choose between `none` (default), `ingress`, or `istio` for external access
+- **Environment**: Configure environment variables via ConfigMap
+
+Example custom values:
+
+```yaml
+replicaCount: 3
+
+image:
+  tag: "v1.0.0"
+  pullPolicy: IfNotPresent
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+networking:
+  type: "ingress"
+  ingress:
+    className: "nginx"
+    hosts:
+      - host: lens-selector.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+```
+
+### Deploy via Raw Kubernetes Manifests
+
+Alternatively, you can deploy using the raw manifests:
+
+```bash
+kubectl apply -f kubernetes/001_lens-selector-example-service.yaml
+kubectl apply -f kubernetes/002_lens-selector-example-deployment.yaml
+```
+
+**Important**: In order to be discovered by the focusing manager, the service includes the following label:
 
 ```yaml
 metadata:
   labels:
     eu.gravitate-health.fosps.focusing: "true"
 ```
+
+This label is automatically applied when using the Helm chart (controlled by `customLabels.gravitateHealth` in values.yaml).
 
 ---
 ## Usage

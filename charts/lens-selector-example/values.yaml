@@ -1,0 +1,216 @@
+# Default values for lens-selector-example.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# -- Number of replicas for the deployment (ignored if autoscaling is enabled)
+replicaCount: 1
+
+image:
+  # -- Container image repository
+  repository: ghcr.io/gravitate-health/lens-selector-example
+  # -- Image pull policy
+  pullPolicy: Always
+  # -- Overrides the image tag whose default is the chart appVersion
+  tag: "latest"
+
+# -- Image pull secrets for private registries
+imagePullSecrets: []
+
+# -- Override the name of the chart
+nameOverride: ""
+
+# -- Override the full name of the chart
+fullnameOverride: ""
+
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: false
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# -- Annotations to add to the pod
+podAnnotations: {}
+
+# -- Security context for the pod
+podSecurityContext: {}
+  # fsGroup: 2000
+
+# -- Security context for the container
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  # -- Service type
+  type: ClusterIP
+  # -- Service port
+  port: 3000
+  # -- Target port on the container
+  targetPort: 3000
+  # -- Service annotations
+  annotations: {}
+
+# Configuration for the application
+config:
+  # -- Environment name (dev, staging, prod)
+  environment: "prod"
+  # -- Additional configuration key-value pairs
+  extraConfig: {}
+    # KEY: "value"
+
+# Secrets configuration
+secret:
+  # -- Enable secret creation
+  enabled: false
+  # -- Secret data as key-value pairs (values will be base64 encoded)
+  # DO NOT put actual secret values here in production - use external secret management
+  data: {}
+    # API_KEY: ""
+    # DATABASE_PASSWORD: ""
+
+# Additional environment variables (for secrets from external sources)
+env: []
+  # - name: SECRET_KEY
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: external-secret
+  #       key: secret-key
+
+# Networking configuration
+# This section controls how the service is exposed externally
+networking:
+  # -- Networking type: 'none', 'ingress', or 'istio'
+  # - 'none': Service only exposed within the cluster (ClusterIP)
+  # - 'ingress': Use standard Kubernetes Ingress for external access
+  # - 'istio': Use Istio VirtualService and Gateway for service mesh routing
+  type: "none"
+  
+  # Ingress configuration (only used when networking.type is 'ingress')
+  ingress:
+    # -- Ingress class name (e.g., nginx, traefik)
+    className: ""
+    # -- Ingress annotations
+    annotations: {}
+      # cert-manager.io/cluster-issuer: letsencrypt-prod
+      # nginx.ingress.kubernetes.io/rewrite-target: /
+    # -- Ingress hosts configuration
+    hosts:
+      - host: lens-selector.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    # -- TLS configuration for ingress
+    tls: []
+      # - secretName: lens-selector-tls
+      #   hosts:
+      #     - lens-selector.example.com
+  
+  # Istio configuration (only used when networking.type is 'istio')
+  istio:
+    # -- Hosts for the VirtualService
+    hosts:
+      - lens-selector-example
+    # -- Gateways to attach to (e.g., istio-system/public-gateway)
+    gateways:
+      - mesh
+    # -- HTTP routes configuration
+    routes:
+      - match:
+          - uri:
+              prefix: "/"
+    # Gateway configuration (optional - only if you need to create a new Gateway)
+    gateway:
+      # -- Enable Gateway creation
+      enabled: false
+      # -- Gateway selector (usually points to istio-ingressgateway)
+      selector:
+        istio: ingressgateway
+      # -- Gateway servers configuration
+      servers:
+        - port:
+            number: 80
+            name: http
+            protocol: HTTP
+          hosts:
+            - lens-selector.example.com
+
+# Liveness probe configuration
+livenessProbe:
+  # -- Enable liveness probe
+  enabled: false
+  # -- Path for the liveness probe
+  path: /health
+  # -- Initial delay before the probe starts
+  initialDelaySeconds: 30
+  # -- How often to perform the probe
+  periodSeconds: 10
+  # -- Timeout for the probe
+  timeoutSeconds: 5
+  # -- Minimum consecutive successes for the probe to be considered successful
+  successThreshold: 1
+  # -- Minimum consecutive failures for the probe to be considered failed
+  failureThreshold: 3
+
+# Readiness probe configuration
+readinessProbe:
+  # -- Enable readiness probe
+  enabled: false
+  # -- Path for the readiness probe
+  path: /health
+  # -- Initial delay before the probe starts
+  initialDelaySeconds: 10
+  # -- How often to perform the probe
+  periodSeconds: 5
+  # -- Timeout for the probe
+  timeoutSeconds: 3
+  # -- Minimum consecutive successes for the probe to be considered successful
+  successThreshold: 1
+  # -- Minimum consecutive failures for the probe to be considered failed
+  failureThreshold: 3
+
+# Resource limits and requests
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 200m
+  #   memory: 256Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# Autoscaling configuration
+autoscaling:
+  # -- Enable horizontal pod autoscaler
+  enabled: false
+  # -- Minimum number of replicas
+  minReplicas: 1
+  # -- Maximum number of replicas
+  maxReplicas: 10
+  # -- Target CPU utilization percentage
+  targetCPUUtilizationPercentage: 80
+  # -- Target memory utilization percentage
+  # targetMemoryUtilizationPercentage: 80
+
+# Node selector for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}
+
+# Custom labels
+customLabels:
+  # -- Enable Gravitate-Health specific label
+  gravitateHealth: true

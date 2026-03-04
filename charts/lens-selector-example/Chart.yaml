@@ -1,0 +1,16 @@
+apiVersion: v2
+name: lens-selector-example
+description: A Helm chart for deploying the Gravitate-Health Lens Selector Example service
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - gravitate-health
+  - lens-selector
+  - focusing
+home: https://github.com/Gravitate-Health/lens-selector-example
+sources:
+  - https://github.com/Gravitate-Health/lens-selector-example
+maintainers:
+  - name: Gravitate-Health Team
+    email: gmejias97@gmail.com
