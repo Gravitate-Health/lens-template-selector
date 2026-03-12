@@ -89,7 +89,7 @@ networking:
   # -- Networking type: 'none', 'ingress', or 'istio'
   # - 'none': Service only exposed within the cluster (ClusterIP)
   # - 'ingress': Use standard Kubernetes Ingress for external access
-  # - 'istio': Use Istio VirtualService and Gateway for service mesh routing
+  # - 'istio': Use Istio VirtualService with an existing Gateway
   type: "none"
   
   # Ingress configuration (only used when networking.type is 'ingress')
@@ -117,7 +117,7 @@ networking:
     # -- Hosts for the VirtualService
     hosts:
       - lens-selector-example
-    # -- Gateways to attach to (e.g., istio-system/public-gateway)
+    # -- Existing Gateways to attach to (e.g., istio-system/public-gateway)
     gateways:
       - mesh
     # -- HTTP routes configuration
@@ -125,21 +125,6 @@ networking:
       - match:
           - uri:
               prefix: "/"
-    # Gateway configuration (optional - only if you need to create a new Gateway)
-    gateway:
-      # -- Enable Gateway creation
-      enabled: false
-      # -- Gateway selector (usually points to istio-ingressgateway)
-      selector:
-        istio: ingressgateway
-      # -- Gateway servers configuration
-      servers:
-        - port:
-            number: 80
-            name: http
-            protocol: HTTP
-          hosts:
-            - lens-selector.example.com
 
 # Liveness probe configuration
 livenessProbe:

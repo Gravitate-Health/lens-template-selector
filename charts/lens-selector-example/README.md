@@ -156,7 +156,7 @@ networking:
 ```
 
 ### 3. Istio
-Istio VirtualService and Gateway for service mesh routing.
+Istio VirtualService attached to an existing Gateway for service mesh routing.
 
 ```yaml
 networking:
